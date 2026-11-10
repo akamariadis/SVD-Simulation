@@ -1,3 +1,13 @@
-# SVD-Simulation
+# SVD Simulation
 
-Η διάσπαση SVD μας λέει πως κάθε πίνακας, έστω Α, όντας μία μαθηματική οντότητα η οποία όταν πολλαπλασιαστεί με μία σφαίρα ακτίνας 1, την παραμορφώνει, μπορεί να αναλυθεί/διασπαστεί σε ένα γινόμενο 3 πινάκων οι οποίοι αναλύουν αυτήν ακριβώς την παραμόρφωση σε 3 διακριτά στάδια. Την περιστροφή της σφαίρας (πίνακας V^T), την παραμόρφωση σύμφωνα με τις ιδιάζουσες τιμές (πίνακας Σ) και τέλος την περιστροφή της (πίνακας U)
+## Overview
+
+The **SVD-Simulation** project aims to provide a visual and interactive understanding of the Singular Value Decomposition (SVD), a fundamental concept in linear algebra.
+
+The Singular Value Decomposition tells us that every matrix \(A\) can be decomposed into a product of three matrices:
+
+\[
+A = U \Sigma V^T
+\]
+
+This decomposition allows us to understand how a matrix transforms geometric objects, such as a unit sphere (or unit circle in 2D), by breaking the transformation into three distinct
