@@ -5,9 +5,7 @@
 #include <string>
 #include <vector>
 
-// ----------------------------------------------------------------------------
 // Math & Color Helpers (Matching Three.js Conventions)
-// ----------------------------------------------------------------------------
 static Color HexColor(unsigned int hex, float alpha = 1.0f) {
     return Color{
         static_cast<unsigned char>((hex >> 16) & 0xFF),
@@ -22,7 +20,6 @@ static Quaternion QuaternionFromEulerXYZ(float x, float y, float z) {
     float c1 = cosf(x * 0.5f), s1 = sinf(x * 0.5f);
     float c2 = cosf(y * 0.5f), s2 = sinf(y * 0.5f);
     float c3 = cosf(z * 0.5f), s3 = sinf(z * 0.5f);
-
     return Quaternion{
         s1 * c2 * c3 + c1 * s2 * s3,
         c1 * s2 * c3 - s1 * c2 * s3,
@@ -31,7 +28,7 @@ static Quaternion QuaternionFromEulerXYZ(float x, float y, float z) {
     };
 }
 
-// Multiply a 3D point by a 4x4 Matrix (raylib column-major layout)
+// Multiply a 3D point by a 4x4 Matrix
 static Vector3 TransformPoint(Vector3 v, const Matrix& m) {
     return Vector3Transform(v, m);
 }
@@ -59,7 +56,6 @@ static Color ComputeLitFogColor(
     float dist = Vector3Distance(camPos, worldPos);
     float fogFactor = expf(-0.05f * dist * 0.05f * dist);
     fogFactor = Clamp(fogFactor, 0.0f, 1.0f);
-
     float r = baseColor.r / 255.0f;
     float g = baseColor.g / 255.0f;
     float b = baseColor.b / 255.0f;
@@ -73,7 +69,6 @@ static Color ComputeLitFogColor(
 
         Vector3 L1 = Vector3Normalize({ 5.0f,  5.0f,  5.0f });
         Vector3 L2 = Vector3Normalize({ -5.0f, -5.0f, -5.0f });
-
         float diff1 = fmaxf(Vector3DotProduct(N, L1), 0.0f) * 1.1f;
         float diff2 = fmaxf(Vector3DotProduct(N, L2), 0.0f) * 0.4f;
         float ambient = 0.4f;
@@ -81,7 +76,6 @@ static Color ComputeLitFogColor(
         // Blinn-Phong specular highlight to emulate MeshPhysicalMaterial roughness 0.1
         Vector3 H1 = Vector3Normalize(Vector3Add(L1, V));
         float spec = powf(fmaxf(Vector3DotProduct(N, H1), 0.0f), 64.0f) * 0.45f;
-
         float light = ambient + diff1 + diff2;
         r = fminf(r * light + spec, 1.0f);
         g = fminf(g * light + spec, 1.0f);
@@ -91,7 +85,7 @@ static Color ComputeLitFogColor(
     float fr = fogColor.r / 255.0f;
     float fg = fogColor.g / 255.0f;
     float fb = fogColor.b / 255.0f;
-
+    
     r = fr + (r - fr) * fogFactor;
     g = fg + (g - fg) * fogFactor;
     b = fb + (b - fb) * fogFactor;
@@ -104,9 +98,7 @@ static Color ComputeLitFogColor(
     };
 }
 
-// ----------------------------------------------------------------------------
 // Scene Geometry Renderers under Composite Transform M = U * Sigma * V^T
-// ----------------------------------------------------------------------------
 static void DrawDeformedSphereAndWireframe(
     const Matrix& M,
     const Matrix& normalMat,
@@ -116,7 +108,6 @@ static void DrawDeformedSphereAndWireframe(
 ) {
     Color sphereBase = HexColor(0x0ea5e9, 0.35f);
     Color wireBase   = HexColor(0x38bdf8, 0.60f);
-
     auto spherePoint = [](int i, int j, int rings, int slices) -> Vector3 {
         float phi = PI * static_cast<float>(i) / static_cast<float>(rings);
         float theta = 2.0f * PI * static_cast<float>(j) / static_cast<float>(slices);
@@ -130,7 +121,6 @@ static void DrawDeformedSphereAndWireframe(
     //Two-pass translucent rendering (back faces then front faces) for clean alpha
     rlDisableDepthMask();
     rlDisableBackfaceCulling();
-
     rlBegin(RL_TRIANGLES);
     for (int i = 0; i < rings; ++i) {
         for (int j = 0; j < slices; ++j) {
@@ -138,26 +128,21 @@ static void DrawDeformedSphereAndWireframe(
             Vector3 n10 = spherePoint(i + 1, j, rings, slices);
             Vector3 n11 = spherePoint(i + 1, j + 1, rings, slices);
             Vector3 n01 = spherePoint(i, j + 1, rings, slices);
-
             Vector3 p00 = TransformPoint(n00, M);
             Vector3 p10 = TransformPoint(n10, M);
             Vector3 p11 = TransformPoint(n11, M);
             Vector3 p01 = TransformPoint(n01, M);
-
             Vector3 wn00 = TransformNormal(n00, normalMat);
             Vector3 wn10 = TransformNormal(n10, normalMat);
             Vector3 wn11 = TransformNormal(n11, normalMat);
             Vector3 wn01 = TransformNormal(n01, normalMat);
-
             Color c00 = ComputeLitFogColor(p00, wn00, camPos, sphereBase, true, false);
             Color c10 = ComputeLitFogColor(p10, wn10, camPos, sphereBase, true, false);
             Color c11 = ComputeLitFogColor(p11, wn11, camPos, sphereBase, true, false);
             Color c01 = ComputeLitFogColor(p01, wn01, camPos, sphereBase, true, false);
-
             rlColor4ub(c00.r, c00.g, c00.b, c00.a); rlVertex3f(p00.x, p00.y, p00.z);
             rlColor4ub(c10.r, c10.g, c10.b, c10.a); rlVertex3f(p10.x, p10.y, p10.z);
             rlColor4ub(c11.r, c11.g, c11.b, c11.a); rlVertex3f(p11.x, p11.y, p11.z);
-
             rlColor4ub(c00.r, c00.g, c00.b, c00.a); rlVertex3f(p00.x, p00.y, p00.z);
             rlColor4ub(c11.r, c11.g, c11.b, c11.a); rlVertex3f(p11.x, p11.y, p11.z);
             rlColor4ub(c01.r, c01.g, c01.b, c01.a); rlVertex3f(p01.x, p01.y, p01.z);
@@ -172,68 +157,57 @@ static void DrawDeformedSphereAndWireframe(
             Vector3 p00 = TransformPoint(spherePoint(i, j, rings, slices), M);
             Vector3 p10 = TransformPoint(spherePoint(i + 1, j, rings, slices), M);
             Vector3 p01 = TransformPoint(spherePoint(i, j + 1, rings, slices), M);
-
             Color c00 = ComputeLitFogColor(p00, {0, 1, 0}, camPos, wireBase, false, true);
             Color c10 = ComputeLitFogColor(p10, {0, 1, 0}, camPos, wireBase, false, true);
             Color c01 = ComputeLitFogColor(p01, {0, 1, 0}, camPos, wireBase, false, true);
-
             rlColor4ub(c00.r, c00.g, c00.b, c00.a); rlVertex3f(p00.x, p00.y, p00.z);
             rlColor4ub(c10.r, c10.g, c10.b, c10.a); rlVertex3f(p10.x, p10.y, p10.z);
-
             rlColor4ub(c00.r, c00.g, c00.b, c00.a); rlVertex3f(p00.x, p00.y, p00.z);
             rlColor4ub(c01.r, c01.g, c01.b, c01.a); rlVertex3f(p01.x, p01.y, p01.z);
         }
     }
     rlEnd();
-
     rlEnableDepthMask();
 }
 
 static void DrawBasisAxis(const Matrix& M, Vector3 dir, unsigned int hexColor, Vector3 camPos) {
     Color baseCol = HexColor(hexColor, 1.0f);
-
     // Shaft from (0,0,0) to 1.5 * dir
     Vector3 startLocal = { 0.0f, 0.0f, 0.0f };
     Vector3 endLocal   = Vector3Scale(dir, 1.5f);
     Vector3 startW     = TransformPoint(startLocal, M);
     Vector3 endW       = TransformPoint(endLocal, M);
-
     Color cStart = ComputeLitFogColor(startW, {0, 1, 0}, camPos, baseCol, false, true);
     Color cEnd   = ComputeLitFogColor(endW,   {0, 1, 0}, camPos, baseCol, false, true);
-
     rlBegin(RL_LINES);
     rlColor4ub(cStart.r, cStart.g, cStart.b, cStart.a); rlVertex3f(startW.x, startW.y, startW.z);
     rlColor4ub(cEnd.r,   cEnd.g,   cEnd.b,   cEnd.a);   rlVertex3f(endW.x,   endW.y,   endW.z);
     rlEnd();
-
     // ConeGeometry(0.06, 0.2, 16) centered at 1.5 * dir oriented along dir
     const float radius = 0.06f;
     const float height = 0.20f;
     const int segments = 16;
-
     // Build orthonormal basis (u, dir, w) in local V-space
     Vector3 upRef = (fabsf(dir.y) < 0.99f) ? Vector3{0.0f, 1.0f, 0.0f} : Vector3{1.0f, 0.0f, 0.0f};
     Vector3 u = Vector3Normalize(Vector3CrossProduct(upRef, dir));
     Vector3 w = Vector3CrossProduct(dir, u);
-
     Vector3 tipLocal  = Vector3Add(endLocal, Vector3Scale(dir,  height * 0.5f));
     Vector3 baseCenterLocal = Vector3Add(endLocal, Vector3Scale(dir, -height * 0.5f));
-
     Vector3 tipW  = TransformPoint(tipLocal, M);
     Vector3 baseW = TransformPoint(baseCenterLocal, M);
     Color cTip    = ComputeLitFogColor(tipW, {0, 1, 0}, camPos, baseCol, false, true);
-
     rlDisableBackfaceCulling();
     rlBegin(RL_TRIANGLES);
+    
     for (int i = 0; i < segments; ++i) {
         float a0 = 2.0f * PI * static_cast<float>(i) / segments;
         float a1 = 2.0f * PI * static_cast<float>(i + 1) / segments;
-
+        
         Vector3 r0 = Vector3Add(baseCenterLocal,
             Vector3Add(Vector3Scale(u, radius * cosf(a0)), Vector3Scale(w, radius * sinf(a0))));
         Vector3 r1 = Vector3Add(baseCenterLocal,
             Vector3Add(Vector3Scale(u, radius * cosf(a1)), Vector3Scale(w, radius * sinf(a1))));
-
+        
         Vector3 r0W = TransformPoint(r0, M);
         Vector3 r1W = TransformPoint(r1, M);
         Color cr0 = ComputeLitFogColor(r0W, {0, 1, 0}, camPos, baseCol, false, true);
@@ -263,7 +237,6 @@ static void DrawGridHelper3D(Vector3 camPos) {
     for (int i = -5; i <= 5; ++i) {
         Color base = (i == 0) ? centerCol : gridCol;
         float pos = static_cast<float>(i);
-
         // Subdivide lines slightly so exponential fog gradients look smooth
         const int segs = 20;
         for (int s = 0; s < segs; ++s) {
@@ -286,9 +259,7 @@ static void DrawGridHelper3D(Vector3 camPos) {
     rlEnd();
 }
 
-// ----------------------------------------------------------------------------
-// 2D UI Helpers (Buttons & Word-Wrapped Explanation Card)
-// ----------------------------------------------------------------------------
+// 2D UI Helpers
 static bool DrawStyledButton(Rectangle bounds, const char* label, Color bgNormal, Color bgHover) {
     Vector2 mouse = GetMousePosition();
     bool hovered = CheckCollisionPointRec(mouse, bounds);
@@ -342,19 +313,15 @@ static int DrawWrappedText(const std::string& text, int x, int y, int maxWidth, 
     return curY - y;
 }
 
-// ----------------------------------------------------------------------------
-// Main Application
-// ----------------------------------------------------------------------------
 int main() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
     InitWindow(1280, 800, "Singular Value Decomposition Geometric Simulation");
     SetTargetFPS(60);
-
-    // OrbitControls state matching camera.position.set(4, 3, 5)
+    
     Vector3 camTarget = { 0.0f, 0.0f, 0.0f };
-    float radius = sqrtf(4.0f * 4.0f + 3.0f * 3.0f + 5.0f * 5.0f); // sqrt(50)
-    float theta  = atan2f(4.0f, 5.0f);                             // azimuth
-    float phi    = acosf(3.0f / radius);                           // polar
+    float radius = sqrtf(4.0f * 4.0f + 3.0f * 3.0f + 5.0f * 5.0f);
+    float theta  = atan2f(4.0f, 5.0f);
+    float phi    = acosf(3.0f / radius);
 
     float targetRadius = radius;
     float targetTheta  = theta;
@@ -366,7 +333,7 @@ int main() {
     camera.fovy = 45.0f;
     camera.projection = CAMERA_PERSPECTIVE;
 
-    // SVD Transformation Targets (Matching Three.js values)
+    // SVD Transformation Targets
     const Quaternion qIdentity = QuaternionIdentity();
     const Vector3    sIdentity = { 1.0f, 1.0f, 1.0f };
 
@@ -480,9 +447,10 @@ int main() {
         // Normal matrix = transpose(inverse(M)) for accurate lighting under non-uniform scaling
         Matrix normalMat = MatrixTranspose(MatrixInvert(M));
 
-        // --------------------------------------------------------------------
-        // Render 3D Scene
-        // --------------------------------------------------------------------
+        
+        // RENDER 3D SCENE!
+
+        
         BeginDrawing();
         ClearBackground(HexColor(0x0f172a, 1.0f));
 
@@ -497,9 +465,6 @@ int main() {
             DrawDeformedSphereAndWireframe(M, normalMat, camera.position, 32, 32);
         EndMode3D();
 
-        // --------------------------------------------------------------------
-        // Render 2D UI Overlay (Matching Tailwind Card Layout)
-        // --------------------------------------------------------------------
         DrawRectangleRounded(panelRect, 0.06f, 10, HexColor(0x1e293b, 0.85f));
         DrawRectangleRoundedLinesEx(panelRect, 0.06f, 10, 1.0f, HexColor(0x334155, 0.7f));
 
@@ -539,7 +504,6 @@ int main() {
         }
         btnY += btnH + 18.0f;
 
-        // Explanation Box
         Rectangle explRect = { btnX, btnY, btnW, 158.0f };
         DrawRectangleRounded(explRect, 0.08f, 8, HexColor(0x0f172a, 0.75f));
         DrawRectangleRoundedLinesEx(explRect, 0.08f, 8, 1.0f, HexColor(0x334155, 1.0f));
