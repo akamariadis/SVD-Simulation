@@ -1,13 +1,31 @@
-# SVD Simulation
+# SVD-Simulation
 
 ## Overview
 
-The **SVD-Simulation** project aims to provide a visual and interactive understanding of the Singular Value Decomposition (SVD), a fundamental concept in linear algebra.
-
-The Singular Value Decomposition tells us that every matrix \(A\) can be decomposed into a product of three matrices:
+Singular Value Decomposition (SVD) tells us that every matrix \(A\) can be decomposed into a product of three matrices:
 
 \[
 A = U \Sigma V^T
 \]
 
-This decomposition allows us to understand how a matrix transforms geometric objects, such as a unit sphere (or unit circle in 2D), by breaking the transformation into three distinct
+A matrix can be viewed as a mathematical transformation that, when applied to a unit sphere (or a unit circle in 2D), deforms it into another geometric shape.
+
+The SVD decomposition allows us to break down this transformation into **three distinct stages**, each represented by one of the three matrices:
+
+1. **Rotation – \(V^T\)**
+
+   The first transformation rotates the unit sphere into a new orientation.
+
+2. **Scaling – \(\Sigma\)**
+
+   The second transformation deforms the sphere according to the singular values of the matrix, stretching or compressing it along its principal axes.
+
+3. **Rotation – \(U\)**
+
+   The final transformation rotates the resulting shape into its final orientation.
+
+By visualizing these three consecutive transformations, the project aims to make the mathematical intuition behind SVD easier to understand.
+
+## Goal
+
+The goal of this project is to provide an intuitive visualization of Singular Value Decomposition, demonstrating how a seemingly complex matrix transformation can be understood as a sequence of rotations and scaling operations.
