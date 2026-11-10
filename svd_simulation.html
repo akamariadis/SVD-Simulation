@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVD Geometric Simulation</title>
+    <!-- Tailwind CSS for UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Inter', sans-serif; 
+            background-color: #0f172a; 
+        }
+        canvas { 
+            display: block; 
+            width: 100vw; 
+            height: 100vh; 
+        }
+    </style>
+    <!-- Import map for Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body class="text-white antialiased">
+
+    <!-- Interactive UI Panel -->
+    <div class="absolute top-6 left-6 z-10 w-80 bg-slate-800/80 backdrop-blur-lg p-6 rounded-2xl shadow-2xl border border-slate-700/50">
+        <h1 class="text-2xl font-bold mb-5 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            SVD Decomposition
+        </h1>
+        
+        <!-- Controls -->
+        <div class="space-y-3 mb-6">
+            <button id="btn-reset" class="w-full py-2.5 px-4 rounded-xl bg-slate-700 hover:bg-slate-600 border border-slate-600 transition font-semibold shadow-sm text-sm">
+                Reset Sphere
+            </button>
+            <button id="btn-step1" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition font-semibold shadow-sm text-sm">
+                Step 1: Apply Vᵀ (Rotation)
+            </button>
+            <button id="btn-step2" class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 transition font-semibold shadow-sm text-sm">
+                Step 2: Apply Σ (Deformation)
+            </button>
+            <button id="btn-step3" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 transition font-semibold shadow-sm text-sm">
+                Step 3: Apply U (Final Rotation)
+            </button>
+        </div>
+
+        <!-- Explanation Box -->
+        <div id="explanation-box" class="p-4 bg-slate-900/70 rounded-xl text-sm text-slate-300 leading-relaxed border border-slate-700 shadow-inner">
+            <strong class="text-white block mb-1">State: Initial</strong>
+            A perfect unit sphere representing data/space before transformation. The colored arrows represent the orthogonal basis vectors (X: Red, Y: Green, Z: Blue).
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // 1. Scene Setup
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x0f172a, 0.05);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(4, 3, 5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(5, 5, 5);
+        scene.add(dirLight);
+
+        const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+        dirLight2.position.set(-5, -5, -5);
+        scene.add(dirLight2);
+
+        // Add a subtle grid to represent the global coordinate system
+        const gridHelper = new THREE.GridHelper(10, 10, 0x475569, 0x1e293b);
+        gridHelper.position.y = -2;
+        scene.add(gridHelper);
+
+        // 2. Math Setup for SVD (A = U * Sigma * V^T)
+        // Mathematically, if we nest groups, the transformation applied to the innermost geometry is:
+        // x_world = (Matrix_U) * (Matrix_Sigma) * (Matrix_V) * x_local
+        const groupU = new THREE.Group();
+        const groupSigma = new THREE.Group();
+        const groupV = new THREE.Group();
+
+        scene.add(groupU);
+        groupU.add(groupSigma);
+        groupSigma.add(groupV);
+
+        // 3. Create the Sphere & Basis Vectors
+        const sphereGeo = new THREE.SphereGeometry(1, 32, 32);
+        const sphereMat = new THREE.MeshPhysicalMaterial({
+            color: 0x0ea5e9,
+            transparent: true,
+            opacity: 0.35,
+            roughness: 0.1,
+            metalness: 0.2,
+            side: THREE.DoubleSide
+        });
+        const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+
+        const wireMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.6 });
+        const wireGeo = new THREE.WireframeGeometry(sphereGeo);
+        const wireframe = new THREE.LineSegments(wireGeo, wireMat);
+        sphere.add(wireframe);
+
+        // Basis Vectors Helper
+        function createAxis(color, direction, labelPos) {
+            const group = new THREE.Group();
+            
+            // Line
+            const mat = new THREE.LineBasicMaterial({ color: color });
+            const geo = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0,0,0),
+                direction.clone().multiplyScalar(1.5)
+            ]);
+            const line = new THREE.Line(geo, mat);
+            group.add(line);
+            
+            // Arrowhead
+            const coneGeo = new THREE.ConeGeometry(0.06, 0.2, 16);
+            const coneMat = new THREE.MeshBasicMaterial({ color: color });
+            const cone = new THREE.Mesh(coneGeo, coneMat);
+            cone.position.copy(direction.clone().multiplyScalar(1.5));
+            cone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), direction);
+            group.add(cone);
+            
+            return group;
+        }
+
+        const xAxis = createAxis(0xff4444, new THREE.Vector3(1,0,0));
+        const yAxis = createAxis(0x44ff44, new THREE.Vector3(0,1,0));
+        const zAxis = createAxis(0x4444ff, new THREE.Vector3(0,0,1));
+        
+        groupV.add(sphere);
+        groupV.add(xAxis, yAxis, zAxis);
+
+        // 4. SVD Target States
+        // Identity States
+        const qIdentity = new THREE.Quaternion();
+        const sIdentity = new THREE.Vector3(1, 1, 1);
+
+        // Transformation Matrices (Represented as Quaternions and Scale Vectors)
+        // V^T: Initial rotation
+        const qV = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI/4, Math.PI/3, 0));
+        // Sigma: Non-uniform scaling (Singular Values)
+        const sSigma = new THREE.Vector3(2.5, 1.2, 0.4);
+        // U: Final rotation
+        const qU = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI/6, -Math.PI/4, Math.PI/6));
+
+        // Current Target Variables for Animation
+        let targetV = qIdentity;
+        let targetSigma = sIdentity;
+        let targetU = qIdentity;
+
+        // 5. UI Logic & Explanations
+        const texts = {
+            reset: "<strong class='text-white block mb-1'>State: Initial</strong> A perfect unit sphere representing data/space before transformation. The colored arrows represent the orthogonal basis vectors (X: Red, Y: Green, Z: Blue).",
+            step1: "<strong class='text-white block mb-1'>Step 1: Apply Vᵀ</strong> The orthogonal matrix Vᵀ performs a pure rotation. The sphere remains a sphere, and the basis vectors rotate. Vᵀ aligns the geometry so that the principal axes match the global coordinate axes, preparing it for scaling.",
+            step2: "<strong class='text-white block mb-1'>Step 2: Apply Σ</strong> The diagonal matrix Σ applies pure scaling. Notice how the sphere deforms into an ellipsoid. It stretches strongly along the X-axis (σ₁ = 2.5), slightly along Y (σ₂ = 1.2), and compresses along Z (σ₃ = 0.4). This reveals the system's principal gains!",
+            step3: "<strong class='text-white block mb-1'>Step 3: Apply U</strong> The orthogonal matrix U performs the final rotation. It takes the deformed ellipsoid and orients it into its final spatial position. This completes the transformation A = U Σ Vᵀ."
+        };
+
+        const explBox = document.getElementById('explanation-box');
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            targetV = qIdentity; targetSigma = sIdentity; targetU = qIdentity;
+            explBox.innerHTML = texts.reset;
+        });
+
+        document.getElementById('btn-step1').addEventListener('click', () => {
+            targetV = qV; targetSigma = sIdentity; targetU = qIdentity;
+            explBox.innerHTML = texts.step1;
+        });
+
+        document.getElementById('btn-step2').addEventListener('click', () => {
+            targetV = qV; targetSigma = sSigma; targetU = qIdentity;
+            explBox.innerHTML = texts.step2;
+        });
+
+        document.getElementById('btn-step3').addEventListener('click', () => {
+            targetV = qV; targetSigma = sSigma; targetU = qU;
+            explBox.innerHTML = texts.step3;
+        });
+
+        // 6. Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Smooth interpolation (slerp for rotation, lerp for scale)
+            groupV.quaternion.slerp(targetV, 0.04);
+            groupSigma.scale.lerp(targetSigma, 0.04);
+            groupU.quaternion.slerp(targetU, 0.04);
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>
