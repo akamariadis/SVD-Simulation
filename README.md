@@ -1,22 +1,31 @@
-# SVD-Simulation
+# SVD 3D Geometric Simulation (C++ / raylib)
 
-Singular Value Decomposition tells us that every matrix **A** can be decomposed into a product of three matrices.
+An interactive 3D geometric visualization of **Singular Value Decomposition ($A = U \Sigma V^T$)** built in C++ using [raylib](https://www.raylib.com/). 
 
+This simulation demonstrates how any linear transformation $A$ acting on a 3D unit sphere and its orthogonal basis vectors can be decomposed into three distinct geometric operations:
+1. **$V^T$ (Initial Rotation):** Aligns the input basis with the principal axes.
+2. **$\Sigma$ (Scaling / Deformation):** Stretches and compresses the sphere along the principal axes ($\sigma_1 = 2.5, \sigma_2 = 1.2, \sigma_3 = 0.4$) into an ellipsoid.
+3. **$U$ (Final Rotation):** Orients the deformed ellipsoid into its final spatial position.
 
-A matrix can be viewed as a mathematical transformation that, when applied to a unit sphere (or a unit circle in 2D), deforms it into another geometric shape.
+---
 
-The SVD decomposition allows us to break down this transformation into **three distinct stages**, each represented by one of the three matrices:
+## Features
 
-1. **Rotation – V^T**
+- **Hierarchical Transformation Stack:** Real-time matrix composition ($M = U \cdot \Sigma \cdot V^T$) with inverse-transpose normal matrix correction for accurate lighting during non-uniform scaling.
+- **Smooth Interpolation:** Frame-rate independent Quaternion SLERP (for $U$ and $V^T$) and Vector LERP (for $\Sigma$).
+- **Custom Lighting & Exponential Fog:** Dual directional Blinn-Phong shading, translucent two-pass sphere rendering, wireframe overlay, and exponential distance fog (`FogExp2`).
+- **Damped Orbit Controls:** Smooth spherical camera rotation and scroll-wheel zoom.
+- **Built-in UI Overlay:** Interactive step buttons and a real-time explanation panel.
 
-   The first transformation rotates the unit sphere into a new orientation.
+---
 
-2. **Scaling – Σ**
+## Prerequisites
 
-   The second transformation deforms the sphere according to the singular values of the matrix, stretching or compressing it along its principal axes.
+You need a **C++17 compiler** (`g++` or `clang++`) and the **raylib** library installed on your system.
 
-3. **Rotation – U**
+### 1. Install raylib
 
-   The final transformation rotates the resulting shape into its final orientation.
-
-By visualizing these three consecutive transformations, the project aims to make the mathematical intuition behind SVD easier to understand. Through an intuitive visualization of the Singular Value Decomposition, a seemingly complex marix transformation can be understood as a sequence of rotations and scaling operations!
+- **Ubuntu / Debian:**
+  ```bash
+  sudo apt update
+  sudo apt install build-essential git libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
