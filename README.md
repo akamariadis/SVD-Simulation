@@ -1,8 +1,8 @@
 # Singular Value Decomposition ($A = U \Sigma V^T$) 3D Geometric Simulation
 
-An interactive 3D geometric visualization of **Singular Value Decomposition** built in C++17 using [raylib](https://www.raylib.com/).
+This repository features a 3D geometric visualization of **Singular Value Decomposition**, built in C++17 using [raylib](https://www.raylib.com/).
 
-This program visually demonstrates how any linear transformation matrix $A \in \mathbb{R}^{3 \times 3}$ acting on a 3D unit sphere and its orthogonal basis vectors ($X, Y, Z$) can be decomposed into three sequential geometric operations:
+This program demonstrates how any linear transformation matrix $A \in \mathbb{R}^{3 \times 3}$ acting on a 3D unit sphere and its orthogonal basis vectors ($X, Y, Z$) can be decomposed into three sequential geometric operations:
 
 $$A = U \Sigma V^T$$
 
@@ -26,11 +26,11 @@ $$A = U \Sigma V^T$$
 
 ## Complete Step-by-Step Setup & Execution Guide
 
-Follow the instructions below for your specific operating system to install the compiler, install `raylib`, compile the code, and run the program.
+Please follow the instructions below for your specific operating system to install the compiler, install `raylib`, compile the code and finally run the simulation!
 
 ---
 
-### Option A: Linux (Ubuntu / Debian / Linux Mint)
+### Linux (Ubuntu / Debian / Linux Mint)
 
 #### Step 1: Update system packages and install the C++ compiler, Git, and CMake
 Open a terminal and run:
