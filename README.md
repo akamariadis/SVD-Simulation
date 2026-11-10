@@ -30,7 +30,7 @@ Please follow the instructions below for your specific operating system to insta
 
 ---
 
-### Linux (Ubuntu / Debian / Linux Mint)
+### Linux
 
 #### Step 1: Update system packages and install the C++ compiler, Git, and CMake
 Open a terminal and run:
@@ -61,10 +61,9 @@ rm -rf /tmp/raylib
 
 #### Step 4: Clone this repository and navigate into the project folder
 ```bash
-git clone https://github.com/your-username/svd-simulation.git
+git clone https://github.com/akamariadis/svd-simulation.git
 cd svd-simulation
 ```
-*(Note: If you have not created a Git repository yet, simply create a folder with `mkdir svd-simulation && cd svd-simulation` and save the C++ code as `svd_simulation.cpp` inside it).*
 
 #### Step 5: Compile the program
 ```bash
