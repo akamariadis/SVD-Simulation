@@ -21,8 +21,4 @@ The SVD decomposition allows us to break down this transformation into **three d
 
    The final transformation rotates the resulting shape into its final orientation.
 
-By visualizing these three consecutive transformations, the project aims to make the mathematical intuition behind SVD easier to understand.
-
-## Goal
-
-The goal of this project is to provide an intuitive visualization of Singular Value Decomposition, demonstrating how a seemingly complex matrix transformation can be understood as a sequence of rotations and scaling operations.
+By visualizing these three consecutive transformations, the project aims to make the mathematical intuition behind SVD easier to understand. Through an intuitive visualization of the Singular Value Decomposition, a seemingly complex marix transformation can be understood as a sequence of rotations and scaling operations!
