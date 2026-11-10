@@ -1,7 +1,5 @@
 # SVD-Simulation
 
-## Overview
-
 Singular Value Decomposition tells us that every matrix **A** can be decomposed into a product of three matrices.
 
 
