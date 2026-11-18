@@ -12,14 +12,14 @@ $$A = U \Sigma V^T$$
 
 1. **Initial State ($I$):** 
    Starts with a translucent unit sphere and three orthogonal basis vectors ($X$: Red, $Y$: Green, $Z$: Blue) representing untransformed 3D space.
-2. **Step 1 — Apply $V^T$ (Initial Rotation):** 
+2. **Step 1 -> Apply $V^T$ (Initial Rotation):** 
    Applies the orthogonal matrix $V^T$ using spherical linear interpolation (SLERP) with Euler angles $(\frac{\pi}{4}, \frac{\pi}{3}, 0)$. Because $V^T$ is an orthogonal transformation, the sphere remains unstretched while its basis vectors rotate to align the principal axes with the global coordinate axes.
-3. **Step 2 — Apply $\Sigma$ (Principal Scaling / Deformation):** 
+3. **Step 2 -> Apply $\Sigma$ (Principal Scaling / Deformation):** 
    Applies the diagonal singular value matrix $\Sigma = \text{diag}(\sigma_1, \sigma_2, \sigma_3)$ using linear interpolation (LERP). The unit sphere deforms into a 3D ellipsoid:
    - Stretches strongly along the $X$-axis ($\sigma_1 = 2.5$)
    - Stretches slightly along the $Y$-axis ($\sigma_2 = 1.2$)
    - Compresses along the $Z$-axis ($\sigma_3 = 0.4$)
-4. **Step 3 — Apply $U$ (Final Rotation):** 
+4. **Step 3 -> Apply $U$ (Final Rotation):** 
    Applies the second orthogonal matrix $U$ via SLERP with Euler angles $(-\frac{\pi}{6}, -\frac{\pi}{4}, \frac{\pi}{6})$, orienting the deformed ellipsoid into its final spatial configuration $A = U \Sigma V^T$.
 
 ---
