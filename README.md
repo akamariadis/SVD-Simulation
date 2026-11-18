@@ -30,7 +30,7 @@ Please follow the instructions below for your specific operating system to insta
 
 ---
 
-### Linux
+### Linux (Ubuntu)
 
 #### Step 1: Update system packages and install the C++ compiler, Git, and CMake
 Open a terminal and run:
@@ -77,7 +77,7 @@ g++ svd_simulation.cpp -o svd_simulation -O2 -std=c++17 -lraylib -lGL -lm -lpthr
 
 ---
 
-### Option B: Linux (Arch Linux / Fedora)
+### Linux (Arch)
 
 #### Step 1: Install the compiler and `raylib`
 - **On Arch Linux / Manjaro:**
@@ -108,7 +108,7 @@ g++ svd_simulation.cpp -o svd_simulation -O2 -std=c++17 -lraylib -lGL -lm -lpthr
 
 ---
 
-### Option C: macOS (Apple Silicon & Intel)
+### macOS
 
 #### Step 1: Install Xcode Command Line Tools
 Open **Terminal** and run:
@@ -146,7 +146,7 @@ clang++ svd_simulation.cpp -o svd_simulation -O2 -std=c++17 $(pkg-config --libs 
 
 ---
 
-### Option D: Windows (via MSYS2 / MinGW-w64)
+### Windows
 
 #### Step 1: Download and install MSYS2
 1. Download the installer from [https://www.msys2.org/](https://www.msys2.org/).
@@ -272,12 +272,3 @@ Once the window opens, follow these steps to explore the decomposition:
   The window is resizable—simply drag any corner of the window or maximize it; the 3D perspective projection matrix automatically updates on resize.
 
 ---
-
-## Project Structure
-
-```text
-svd-simulation/
-├── svd_simulation.cpp   # Complete C++17 source code (3D math, lighting, fog, and UI)
-├── CMakeLists.txt       # (Optional) Cross-platform CMake build configuration
-└── README.md            # Complete setup, compilation, and usage documentation
-```
