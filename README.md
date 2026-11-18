@@ -92,7 +92,7 @@ g++ svd_simulation.cpp -o svd_simulation -O2 -std=c++17 -lraylib -lGL -lm -lpthr
 
 #### Step 2: Clone the repository and enter the directory
 ```bash
-git clone https://github.com/your-username/svd-simulation.git
+git clone https://github.com/akamariadis/svd-simulation.git
 cd svd-simulation
 ```
 
@@ -130,7 +130,7 @@ brew install raylib pkg-config
 
 #### Step 4: Clone the repository and enter the directory
 ```bash
-git clone https://github.com/your-username/svd-simulation.git
+git clone https://github.com/akamariadis/svd-simulation.git
 cd svd-simulation
 ```
 
@@ -165,7 +165,7 @@ Press `Enter` to select all default packages and type `Y` when prompted.
 
 #### Step 4: Clone the repository and navigate into the folder
 ```bash
-git clone https://github.com/your-username/svd-simulation.git
+git clone https://github.com/akamariadis/svd-simulation.git
 cd svd-simulation
 ```
 
