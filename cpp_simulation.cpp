@@ -52,7 +52,9 @@ static Color ComputeLitFogColor(
     bool twoSided,
     bool unlit = false
 ) {
-    const Color fogColor = HexColor(0x0f172a, 1.0f);
+    static const Color fogColor = HexColor(0x0f172a, 1.0f);
+    static const Vector3 light1 = Vector3Normalize({ 5.0f,  5.0f,  5.0f });
+    static const Vector3 light2 = Vector3Normalize({-5.0f, -5.0f, -5.0f });
     float dist = Vector3Distance(camPos, worldPos);
     float fogFactor = expf(-0.05f * dist * 0.05f * dist);
     fogFactor = Clamp(fogFactor, 0.0f, 1.0f);
@@ -67,14 +69,12 @@ static Color ComputeLitFogColor(
             N = Vector3Negate(N);
         }
 
-        Vector3 L1 = Vector3Normalize({ 5.0f,  5.0f,  5.0f });
-        Vector3 L2 = Vector3Normalize({ -5.0f, -5.0f, -5.0f });
-        float diff1 = fmaxf(Vector3DotProduct(N, L1), 0.0f) * 1.1f;
-        float diff2 = fmaxf(Vector3DotProduct(N, L2), 0.0f) * 0.4f;
+        float diff1 = fmaxf(Vector3DotProduct(N, light1), 0.0f) * 1.1f;
+        float diff2 = fmaxf(Vector3DotProduct(N, light2), 0.0f) * 0.4f;
         float ambient = 0.4f;
 
         // Blinn-Phong specular highlight to emulate MeshPhysicalMaterial roughness 0.1
-        Vector3 H1 = Vector3Normalize(Vector3Add(L1, V));
+        Vector3 H1 = Vector3Normalize(Vector3Add(light1, V));
         float spec = powf(fmaxf(Vector3DotProduct(N, H1), 0.0f), 64.0f) * 0.45f;
         float light = ambient + diff1 + diff2;
         r = fminf(r * light + spec, 1.0f);
@@ -108,14 +108,37 @@ static void DrawDeformedSphereAndWireframe(
 ) {
     Color sphereBase = HexColor(0x0ea5e9, 0.35f);
     Color wireBase   = HexColor(0x38bdf8, 0.60f);
-    auto spherePoint = [](int i, int j, int rings, int slices) -> Vector3 {
-        float phi = PI * static_cast<float>(i) / static_cast<float>(rings);
-        float theta = 2.0f * PI * static_cast<float>(j) / static_cast<float>(slices);
-        return Vector3{
-            sinf(phi) * cosf(theta),
-            cosf(phi),
-            sinf(phi) * sinf(theta)
-        };
+
+    // Sphere topology is constant while the transformation changes every frame.
+    // Cache the local-space points so trigonometric functions run only when the
+    // requested resolution changes.
+    static std::vector<Vector3> cachedPoints;
+    static int cachedRings = 0;
+    static int cachedSlices = 0;
+    if (cachedRings != rings || cachedSlices != slices) {
+        cachedPoints.resize(static_cast<size_t>(rings + 1) * static_cast<size_t>(slices + 1));
+        for (int i = 0; i <= rings; ++i) {
+            float phi = PI * static_cast<float>(i) / static_cast<float>(rings);
+            float sinPhi = sinf(phi);
+            float cosPhi = cosf(phi);
+            for (int j = 0; j <= slices; ++j) {
+                float theta = 2.0f * PI * static_cast<float>(j) / static_cast<float>(slices);
+                cachedPoints[static_cast<size_t>(i) * static_cast<size_t>(slices + 1) + static_cast<size_t>(j)] = {
+                    sinPhi * cosf(theta),
+                    cosPhi,
+                    sinPhi * sinf(theta)
+                };
+            }
+        }
+        cachedRings = rings;
+        cachedSlices = slices;
+    }
+
+    auto spherePoint = [&](int i, int j) -> const Vector3& {
+        return cachedPoints[
+            static_cast<size_t>(i) * static_cast<size_t>(slices + 1) +
+            static_cast<size_t>(j)
+        ];
     };
 
     //Two-pass translucent rendering (back faces then front faces) for clean alpha
@@ -124,10 +147,10 @@ static void DrawDeformedSphereAndWireframe(
     rlBegin(RL_TRIANGLES);
     for (int i = 0; i < rings; ++i) {
         for (int j = 0; j < slices; ++j) {
-            Vector3 n00 = spherePoint(i, j, rings, slices);
-            Vector3 n10 = spherePoint(i + 1, j, rings, slices);
-            Vector3 n11 = spherePoint(i + 1, j + 1, rings, slices);
-            Vector3 n01 = spherePoint(i, j + 1, rings, slices);
+            Vector3 n00 = spherePoint(i, j);
+            Vector3 n10 = spherePoint(i + 1, j);
+            Vector3 n11 = spherePoint(i + 1, j + 1);
+            Vector3 n01 = spherePoint(i, j + 1);
             Vector3 p00 = TransformPoint(n00, M);
             Vector3 p10 = TransformPoint(n10, M);
             Vector3 p11 = TransformPoint(n11, M);
@@ -154,9 +177,9 @@ static void DrawDeformedSphereAndWireframe(
     rlBegin(RL_LINES);
     for (int i = 0; i < rings; ++i) {
         for (int j = 0; j < slices; ++j) {
-            Vector3 p00 = TransformPoint(spherePoint(i, j, rings, slices), M);
-            Vector3 p10 = TransformPoint(spherePoint(i + 1, j, rings, slices), M);
-            Vector3 p01 = TransformPoint(spherePoint(i, j + 1, rings, slices), M);
+            Vector3 p00 = TransformPoint(spherePoint(i, j), M);
+            Vector3 p10 = TransformPoint(spherePoint(i + 1, j), M);
+            Vector3 p01 = TransformPoint(spherePoint(i, j + 1), M);
             Color c00 = ComputeLitFogColor(p00, {0, 1, 0}, camPos, wireBase, false, true);
             Color c10 = ComputeLitFogColor(p10, {0, 1, 0}, camPos, wireBase, false, true);
             Color c01 = ComputeLitFogColor(p01, {0, 1, 0}, camPos, wireBase, false, true);
