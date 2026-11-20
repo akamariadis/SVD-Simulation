@@ -247,7 +247,7 @@ Once the window opens, follow these steps to explore the decomposition:
    - Click **"Reset Sphere"** (or press `0` or `R` on your keyboard) to smoothly animate back to the identity state.
    - Note that you can also jump directly from the reset state to Step 2 or Step 3 to see combined transformations animate simultaneously.
 
-### Summary of Keyboard & Mouse Controls
+### Keyboard & Mouse Controls
 
 | Input | Action |
 | :--- | :--- |
@@ -259,16 +259,5 @@ Once the window opens, follow these steps to explore the decomposition:
 | **`2` Key** | **Step 2:** Apply $\Sigma V^T$ (Rotation + Principal Scaling) |
 | **`3` Key** | **Step 3:** Apply $U \Sigma V^T$ (Full SVD Transformation) |
 | **`ESC` Key** | Close window and exit program |
-
----
-
-## Troubleshooting
-
-- **`error while loading shared libraries: libraylib.so` (Linux):**
-  Run `sudo ldconfig` in your terminal so the dynamic linker refreshes its cache of `/usr/local/lib`.
-- **`raylib.h: No such file or directory`:**
-  Ensure `raylib` is installed for your compiler's target architecture, or use the **CMake Build** method above, which automatically downloads and links `raylib` for you.
-- **Window appears too small on High-DPI / Retina displays:**
-  The window is resizable—simply drag any corner of the window or maximize it; the 3D perspective projection matrix automatically updates on resize.
 
 ---
